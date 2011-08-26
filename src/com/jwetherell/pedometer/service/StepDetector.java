@@ -6,6 +6,11 @@ import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 
+/**
+ * This class handles SensorEvents and determines if they are a "step" or not.
+ * 
+ * @author Justin Wetherell <phishman3579@gmail.com>
+ */
 public class StepDetector implements SensorEventListener {
     private static boolean detecting = false;
     

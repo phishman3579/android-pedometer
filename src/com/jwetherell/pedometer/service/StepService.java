@@ -19,6 +19,12 @@ import android.os.PowerManager;
 import android.os.RemoteException;
 import android.os.PowerManager.WakeLock;
 
+/**
+ * This class extends the Service class. it is in charge of starting and stopping the power, notification,
+ * and sensor managers. It also passes information received from the sensor to the StepDetector.
+ * 
+ * @author Justin Wetherell <phishman3579@gmail.com>
+ */
 public class StepService extends Service implements StepListener {
     private static final Logger logger = Logger.getLogger(StepService.class.getSimpleName());
     
