@@ -206,7 +206,7 @@ public class Demo extends Activity {
 		try {
 			startService(stepServiceIntent);
 		} catch (Exception e) {
-			logger.info(e.getLocalizedMessage());
+			e.printStackTrace();
 		}
 	}
 
@@ -215,7 +215,7 @@ public class Demo extends Activity {
 			stopService(stepServiceIntent);
 			stepServiceIntent=null;
 		} catch (Exception e) {
-			logger.info(e.getLocalizedMessage());
+			e.printStackTrace();
 		}
 	}
 	
@@ -223,7 +223,7 @@ public class Demo extends Activity {
 		try {
 			bindService(stepServiceIntent, mConnection, Context.BIND_AUTO_CREATE);
 		} catch (Exception e) {
-			logger.info(e.getLocalizedMessage());
+			e.printStackTrace();
 		}
 	}
 
@@ -231,7 +231,7 @@ public class Demo extends Activity {
 		try {
 			unbindService(mConnection);
 		} catch (Exception e) {
-			logger.info(e.getLocalizedMessage());
+			e.printStackTrace();
 		}
 	}
 
