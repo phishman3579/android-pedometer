@@ -9,6 +9,9 @@ import android.hardware.SensorManager;
 /**
  * This class handles SensorEvents and determines if they are a "step" or not.
  * 
+ * This code is losely based on http://code.google.com/p/pedometer/
+ * 
+ * @author bagilevi <bagilevi@gmail.com>
  * @author Justin Wetherell <phishman3579@gmail.com>
  */
 public class StepDetector implements SensorEventListener {
@@ -46,10 +49,14 @@ public class StepDetector implements SensorEventListener {
 
     @Override
     public void onSensorChanged(SensorEvent event) {
+    	if (event==null) return;
+
         if (!detecting) detectStep(event);
     }
 
     private void detectStep(SensorEvent event) {
+    	if (event==null) return;
+
         detecting=true;
         
         float vSum = 0;

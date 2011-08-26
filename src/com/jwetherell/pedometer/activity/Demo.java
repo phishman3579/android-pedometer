@@ -34,7 +34,7 @@ import android.widget.CompoundButton.OnCheckedChangeListener;
 
 /**
  * This class extends Activity to handle starting and stopping the pedometer service and displaying the steps.
- * 
+ *
  * @author Justin Wetherell <phishman3579@gmail.com>
  */
 public class Demo extends Activity {
