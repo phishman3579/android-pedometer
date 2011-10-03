@@ -4,8 +4,7 @@ import android.app.AlertDialog;
 import android.app.AlertDialog.Builder;
 import android.content.Context;
 import android.content.DialogInterface;
-import android.view.Gravity;
-import android.widget.Toast;
+
 
 /**
  * This abstract class provides static methods to display messages.
@@ -13,13 +12,21 @@ import android.widget.Toast;
  * @author Justin Wetherell <phishman3579@gmail.com>
  */
 public abstract class MessageUtilities {
-    
+    /** Enum representing the confirmation result */
     public static enum ConfirmationResult {YES,NO};
     
+    /**
+     * Show confirmation box using AlertDialog.
+     * @param context Context to show the alert.
+     * @param msg String to show in the alert.
+     * @param yesClick OnClickListener to execute on a YES click.
+     * @param noClick OnClickListener to execute on a NO click.
+     * @throws NullPointerException if context or msg are NULL.
+     */
     public static void confirmUser( Context context, String msg,
                                     DialogInterface.OnClickListener yesClick, 
                                     DialogInterface.OnClickListener noClick){
-    	if (context==null || msg==null || yesClick==null || noClick==null) return;
+    	if (context==null || msg==null) throw new NullPointerException();
     	
         Builder alert = new AlertDialog.Builder(context);
         alert.setIcon(android.R.drawable.ic_dialog_alert)
@@ -28,29 +35,5 @@ public abstract class MessageUtilities {
              .setPositiveButton(    "Yes", yesClick)
              .setNegativeButton("No", noClick)
              .show();
-    }
-    
-    public static void helpUser(Context context, String msg) {
-    	if (context==null || msg==null) return;
-    	
-        Toast t = Toast.makeText(context, msg, Toast.LENGTH_LONG);
-        t.setGravity(Gravity.CENTER, 0, 0);
-        t.show();
-    }
-    
-    public static void alertUser(Context context, String msg) {
-    	if (context==null || msg==null) return;
-    	
-        Toast t = Toast.makeText(context, msg, Toast.LENGTH_SHORT);
-        t.setGravity(Gravity.CENTER, 0, 0);
-        t.show();
-    }
-
-    public static void alertUserTop(Context context, String msg) {
-    	if (context==null || msg==null) return;
-    	
-        Toast t = Toast.makeText(context, msg, Toast.LENGTH_SHORT);
-        t.setGravity(Gravity.TOP, 0, 0);
-        t.show();
     }
 }

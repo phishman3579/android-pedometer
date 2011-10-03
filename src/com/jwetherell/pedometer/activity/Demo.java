@@ -17,7 +17,9 @@ import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.res.Configuration;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.IBinder;
+import android.os.Message;
 import android.os.PowerManager;
 import android.os.PowerManager.WakeLock;
 import android.os.RemoteException;
@@ -31,6 +33,7 @@ import android.widget.TextView;
 import android.widget.ToggleButton;
 import android.widget.AdapterView.OnItemSelectedListener;
 import android.widget.CompoundButton.OnCheckedChangeListener;
+
 
 /**
  * This class extends Activity to handle starting and stopping the pedometer service and displaying the steps.
@@ -53,6 +56,9 @@ public class Demo extends Activity {
 	
 	private static int sensitivity = 100;
 
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -92,6 +98,9 @@ public class Demo extends Activity {
 		text = (TextView) this.findViewById(R.id.text);
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	public void onDestroy() { 
 		super.onDestroy();
@@ -100,7 +109,35 @@ public class Demo extends Activity {
 		if (stepServiceIntent!=null) stop();
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public void onStart() {
+		super.onStart();
+
+		if (!wakeLock.isHeld()) wakeLock.acquire();
+
+		//Try to bind to service if it was started at a earlier time.
+		bindStepService();
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public void onPause() {
+		super.onPause();
+
+		if (wakeLock.isHeld()) wakeLock.release();
+
+		unbindStepService();
+	}
+
 	private OnItemSelectedListener sensListener = new OnItemSelectedListener() {
+		/**
+		 * {@inheritDoc}
+		 */
 		@Override
 		public void onItemSelected(AdapterView<?> arg0, View arg1, int arg2, long arg3) {
 		    CharSequence seq = modesAdapter.getItem(arg2);
@@ -110,12 +147,19 @@ public class Demo extends Activity {
 			    StepDetector.setSensitivity(sensitivity);
 			}
 		}
+
+		/**
+		 * {@inheritDoc}
+		 */
 		@Override
 		public void onNothingSelected(AdapterView<?> arg0) {
 			//Ignore
 		}
 	};
-	
+
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	public boolean onKeyDown(int keyCode, KeyEvent event) {
 		if (keyCode == KeyEvent.KEYCODE_BACK) {
@@ -131,7 +175,7 @@ public class Demo extends Activity {
 					finish();
 				}
 			} catch (RemoteException e) {
-				logger.info("Exception: "+e.getMessage());
+				e.printStackTrace();
 				return false;
 			}
 			return true;
@@ -139,12 +183,18 @@ public class Demo extends Activity {
 		return super.onKeyDown(keyCode, event);
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	public void onConfigurationChanged(Configuration newConfig) {
 		super.onConfigurationChanged(newConfig);
 	}
 
 	private OnCheckedChangeListener startStopListener = new OnCheckedChangeListener() {
+		/**
+		 * {@inheritDoc}
+		 */
 		@Override
 		public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
 			if (isChecked) {            
@@ -159,6 +209,9 @@ public class Demo extends Activity {
 	};
 
 	private DialogInterface.OnClickListener yesStopClick = new DialogInterface.OnClickListener(){
+		/**
+		 * {@inheritDoc}
+		 */
 		@Override
 		public void onClick(DialogInterface dialog, int which) {
 			stop();
@@ -166,28 +219,34 @@ public class Demo extends Activity {
 	};    
 
 	private DialogInterface.OnClickListener noStopClick = new DialogInterface.OnClickListener(){
+		/**
+		 * {@inheritDoc}
+		 */
 		@Override
 		public void onClick(DialogInterface dialog, int which) {
 			if (mService!=null)
 				try {
 					startStopButton.setChecked(mService.isRunning());
 				} catch (RemoteException e) {
-					logger.info("Exception: "+e.getMessage());
+					e.printStackTrace();
 				}
 		}
 	};
 
 	private DialogInterface.OnClickListener yesExitClick = new DialogInterface.OnClickListener(){
+		/**
+		 * {@inheritDoc}
+		 */
 		@Override
 		public void onClick(DialogInterface dialog, int which) {
 			stop();
+			
+			finish();
 		}
 	};
 
 	private void start() {
 		logger.info("start");
-
-		if (!wakeLock.isHeld()) wakeLock.acquire();
 
 		startStepService();
 		bindStepService();
@@ -195,8 +254,6 @@ public class Demo extends Activity {
 
 	private void stop() {
 		logger.info("stop");
-
-		if (wakeLock.isHeld()) wakeLock.release();
 
 		unbindStepService();
 		stopStepService();
@@ -215,7 +272,7 @@ public class Demo extends Activity {
 			stopService(stepServiceIntent);
 			stepServiceIntent=null;
 		} catch (Exception e) {
-			e.printStackTrace();
+			//Ignore
 		}
 	}
 	
@@ -231,24 +288,36 @@ public class Demo extends Activity {
 		try {
 			unbindService(mConnection);
 		} catch (Exception e) {
-			e.printStackTrace();
+			//Ignore
 		}
 	}
 
-	private IStepServiceCallback mCallback = new IStepServiceCallback() {
+    private static final Handler handler = new Handler() {
+        public void handleMessage(Message msg) {
+            int current = msg.arg1;
+            text.setText("Steps = "+current);
+        }
+    };
+	
+	private IStepServiceCallback.Stub mCallback = new IStepServiceCallback.Stub() {
 		@Override
 		public IBinder asBinder() {
-			return null;
+			return mCallback;
 		}
 
 		@Override
 		public void stepsChanged(int value) throws RemoteException {
-			logger.info("Steps=+value");
-			text.setText("Steps = "+value);
+			logger.info("Steps="+value);
+			Message msg = handler.obtainMessage();
+	        msg.arg1 = value;
+	        handler.sendMessage(msg);
 		}
 	};
 
 	private ServiceConnection mConnection = new ServiceConnection() {
+		/**
+		 * {@inheritDoc}
+		 */
 		@Override
 		public void onServiceConnected(ComponentName className, IBinder service) {
 			mService = IStepService.Stub.asInterface(service);
@@ -256,10 +325,13 @@ public class Demo extends Activity {
 				mService.registerCallback(mCallback);
 				mService.setSensitivity(sensitivity);
 			} catch (RemoteException e) {
-				logger.info("Exception: "+e.getMessage());
+				e.printStackTrace();
 			}
 		}
 
+		/**
+		 * {@inheritDoc}
+		 */
 		@Override
 		public void onServiceDisconnected(ComponentName className) {
 			mService = null;

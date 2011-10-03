@@ -2,6 +2,7 @@ package com.jwetherell.pedometer.service;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Logger;
 import com.jwetherell.pedometer.R;
 import android.app.Notification;
@@ -18,6 +19,7 @@ import android.os.IBinder;
 import android.os.PowerManager;
 import android.os.RemoteException;
 import android.os.PowerManager.WakeLock;
+
 
 /**
  * This class extends the Service class. it is in charge of starting and stopping the power, notification,
@@ -43,9 +45,12 @@ public class StepService extends Service implements StepListener {
     private static NotificationManager notificatioManager = null;
     private static Notification notification = null;
     private static Intent passedIntent = null;
-    private static ArrayList<IStepServiceCallback> mCallbacks = new ArrayList<IStepServiceCallback>();;
+    private static List<IStepServiceCallback> mCallbacks = new ArrayList<IStepServiceCallback>();;
     private static int mSteps = 0;
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void onCreate() {
         super.onCreate();
@@ -67,6 +72,9 @@ public class StepService extends Service implements StepListener {
                                         SensorManager.SENSOR_DELAY_GAME);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void onStart(Intent intent, int startId) {        
         super.onStart(intent, startId);
@@ -78,13 +86,17 @@ public class StepService extends Service implements StepListener {
             NOTIFY = extras.getInt("int");
         }
 
-        updateNotification(1);
+        //Work around a bug where notif number has to be > 0
+        updateNotification((mSteps>0)?mSteps:1);
         startForegroundCompat(NOTIFY,notification);
         
         running=true;
         mSteps = 0;
     }
-    
+
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void onDestroy() {        
         super.onDestroy();
@@ -102,6 +114,8 @@ public class StepService extends Service implements StepListener {
     /**
      * This is a wrapper around the new startForeground method, using the older
      * APIs if it is not available.
+     * @param id Integer representing the service to start.
+     * @param notif Notification to display when service is running.
      */
     public void startForegroundCompat(int id, Notification notif) {
         Method mStartForeground = null;
@@ -129,6 +143,7 @@ public class StepService extends Service implements StepListener {
     /**
      * This is a wrapper around the new stopForeground method, using the older
      * APIs if it is not available.
+     * @param id Integer of the service to stop.
      */
     public void stopForegroundCompat(int id) {
         Method mStopForeground = null;
@@ -171,6 +186,9 @@ public class StepService extends Service implements StepListener {
         updating = false;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void onStep() {
         mSteps++;
@@ -181,17 +199,29 @@ public class StepService extends Service implements StepListener {
         }
         
         if (mCallbacks != null) {
+        	List<IStepServiceCallback> callbacksToRemove = null;
         	for (IStepServiceCallback mCallback : mCallbacks) {
         		try {
 					mCallback.stepsChanged(mSteps);
 				} catch (RemoteException e) {
-					logger.info("Exception: "+e.getMessage());
+					//Remove old callbacks if they failed to unbind
+					callbacksToRemove = new ArrayList<IStepServiceCallback>();
+					callbacksToRemove.add(mCallback);
+					e.printStackTrace();
 				}
+        	}
+        	if (callbacksToRemove!=null) {
+        		for (IStepServiceCallback mCallback : callbacksToRemove) {
+        			mCallbacks.remove(mCallback);
+        		}
         	}
         }
     }
     
     private class UpdateNotificationAsyncTask extends AsyncTask<Integer, Integer, Boolean> {
+        /**
+         * {@inheritDoc}
+         */
         @Override
         protected Boolean doInBackground(Integer... params) {
             updateNotification(params[0]);
@@ -200,30 +230,48 @@ public class StepService extends Service implements StepListener {
     }
 
     private final IStepService.Stub mBinder = new IStepService.Stub(){
+    	/**
+         * {@inheritDoc}
+         */
         @Override
         public boolean isRunning() throws RemoteException {
             return running;
         }
 
+        /**
+         * {@inheritDoc}
+         */
 		@Override
 		public void setSensitivity(int sens) throws RemoteException {
 			logger.info("setSensitivity: "+sens);
 		    StepDetector.setSensitivity(sens);
 		}  
-		
+
+	    /**
+	     * {@inheritDoc}
+	     */
         @Override
         public void registerCallback(IStepServiceCallback cb) throws RemoteException {
         	logger.info("registerCallback: "+cb.toString());
-            if (cb != null) mCallbacks.add(cb);
+            if (cb != null) {
+            	cb.stepsChanged(mSteps);
+            	if (!mCallbacks.contains(cb)) mCallbacks.add(cb);
+            }
         }
 
+        /**
+         * {@inheritDoc}
+         */
         @Override
         public void unregisterCallback(IStepServiceCallback cb) throws RemoteException {
         	logger.info("unregisterCallback: "+cb.toString());
-            if (cb != null) mCallbacks.remove(cb);
+            if (cb != null && mCallbacks.contains(cb)) mCallbacks.remove(cb);
         }
     };
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public IBinder onBind(Intent intent) {
         logger.info("onBind()");

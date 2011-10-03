@@ -6,6 +6,7 @@ import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 
+
 /**
  * This class handles SensorEvents and determines if they are a "step" or not.
  * 
@@ -29,9 +30,17 @@ public class StepDetector implements SensorEventListener {
     private int mLastMatch = -1;
     
     private ArrayList<StepListener> mStepListeners = new ArrayList<StepListener>();
+    /**
+     * Add a StepListener;
+     * @param sl StepListener to add.
+     */
     public void addStepListener(StepListener sl) {
         if (!mStepListeners.contains(sl)) mStepListeners.add(sl);
     }
+    /**
+     * Remove a StepListener.
+     * @param sl StepListener to remove.
+     */
     public void removeStepListener(StepListener sl) {
         if (mStepListeners.contains(sl)) mStepListeners.remove(sl);
     }
@@ -43,10 +52,17 @@ public class StepDetector implements SensorEventListener {
         mScale[1] = - (h * 0.5f * (1.0f / (SensorManager.MAGNETIC_FIELD_EARTH_MAX)));
     }
     
+    /**
+     * Set sensitivity of the StepDector.
+     * @param sensitivity Sensitivity of the StepDector.
+     */
     public static void setSensitivity(int sensitivity) {
         mLimit = sensitivity;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void onSensorChanged(SensorEvent event) {
     	if (event==null) return;
@@ -95,7 +111,10 @@ public class StepDetector implements SensorEventListener {
         
         detecting=false;
     }
-    
+
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void onAccuracyChanged(Sensor arg0, int arg1) {
         // Not used
