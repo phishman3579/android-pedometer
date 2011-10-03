@@ -102,24 +102,17 @@ public class Demo extends Activity {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public void onDestroy() { 
-		super.onDestroy();
-		logger.info("onDestroy");
-		
-		if (stepServiceIntent!=null) stop();
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
-	@Override
 	public void onStart() {
 		super.onStart();
 
 		if (!wakeLock.isHeld()) wakeLock.acquire();
 
-		//Try to bind to service if it was started at a earlier time.
-		bindStepService();
+		//Bind without starting the service
+		try {
+			bindService(stepServiceIntent, mConnection, 0);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 
 	/**
@@ -197,9 +190,15 @@ public class Demo extends Activity {
 		 */
 		@Override
 		public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-			if (isChecked) {            
+			boolean serviceIsRunning = false;
+			try {
+				if (mService!=null) serviceIsRunning = mService.isRunning();
+			} catch (RemoteException e) {
+				e.printStackTrace();
+			}
+			if (isChecked && !serviceIsRunning) {            
 				start();
-			} else {
+			} else if (!isChecked && serviceIsRunning) {
 				MessageUtilities.confirmUser(   Demo.this, 
 						"Stop the pedometer?", 
 								yesStopClick, 
@@ -270,7 +269,6 @@ public class Demo extends Activity {
 	private void stopStepService() {
 		try {
 			stopService(stepServiceIntent);
-			stepServiceIntent=null;
 		} catch (Exception e) {
 			//Ignore
 		}
@@ -320,10 +318,12 @@ public class Demo extends Activity {
 		 */
 		@Override
 		public void onServiceConnected(ComponentName className, IBinder service) {
+			logger.info("onServiceConnected()");
 			mService = IStepService.Stub.asInterface(service);
 			try {
 				mService.registerCallback(mCallback);
 				mService.setSensitivity(sensitivity);
+				startStopButton.setChecked(mService.isRunning());
 			} catch (RemoteException e) {
 				e.printStackTrace();
 			}
@@ -334,6 +334,12 @@ public class Demo extends Activity {
 		 */
 		@Override
 		public void onServiceDisconnected(ComponentName className) {
+			logger.info("onServiceDisconnected()");
+			try {
+				startStopButton.setChecked(mService.isRunning());
+			} catch (RemoteException e) {
+				e.printStackTrace();
+			}
 			mService = null;
 		}
 	};

@@ -3,6 +3,7 @@ package com.jwetherell.pedometer.service;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Logger;
 import com.jwetherell.pedometer.R;
 import android.app.Notification;
@@ -34,8 +35,7 @@ public class StepService extends Service implements StepListener {
     private static final Logger logger = Logger.getLogger(StepService.class.getSimpleName());
     
     private static int NOTIFY = 0x1001;
-    private static boolean running = false;
-    private static boolean updating = false;
+    private static AtomicBoolean updating = new AtomicBoolean(false);
     
     private static SensorManager sensorManager = null;
     private static StepDetector stepDetector = null;
@@ -48,6 +48,8 @@ public class StepService extends Service implements StepListener {
     private static List<IStepServiceCallback> mCallbacks = new ArrayList<IStepServiceCallback>();;
     private static int mSteps = 0;
 
+    private boolean running = false;
+    
     /**
      * {@inheritDoc}
      */
@@ -91,7 +93,6 @@ public class StepService extends Service implements StepListener {
         startForegroundCompat(NOTIFY,notification);
         
         running=true;
-        mSteps = 0;
     }
 
     /**
@@ -109,6 +110,7 @@ public class StepService extends Service implements StepListener {
         stopForegroundCompat(NOTIFY);
         
         running=false;
+        mSteps = 0;
     }
     
     /**
@@ -175,7 +177,7 @@ public class StepService extends Service implements StepListener {
     }
     
     private void updateNotification(int steps) {
-        updating = true;
+        if (!updating.compareAndSet(false, true)) return;
         
         notification.number = steps;
         notification.when = System.currentTimeMillis();
@@ -183,7 +185,7 @@ public class StepService extends Service implements StepListener {
         notification.setLatestEventInfo(this, getText(R.string.app_name), "Total steps: "+steps, contentIntent);
         notificatioManager.notify(NOTIFY, notification);
         
-        updating = false;
+        updating.set(false);
     }
 
     /**
@@ -193,7 +195,7 @@ public class StepService extends Service implements StepListener {
     public void onStep() {
         mSteps++;
 
-        if (!updating) { 
+        if (!updating.get()) { 
             UpdateNotificationAsyncTask update = new UpdateNotificationAsyncTask();
             update.doInBackground(mSteps);
         }
