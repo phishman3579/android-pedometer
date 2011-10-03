@@ -46,9 +46,9 @@ public class StepService extends Service implements StepListener {
     private static Notification notification = null;
     private static Intent passedIntent = null;
     private static List<IStepServiceCallback> mCallbacks = new ArrayList<IStepServiceCallback>();;
+    
     private static int mSteps = 0;
-
-    private boolean running = false;
+    private static boolean running = false;
     
     /**
      * {@inheritDoc}
@@ -65,33 +65,15 @@ public class StepService extends Service implements StepListener {
         wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "StepService");
         if (!wakeLock.isHeld()) wakeLock.acquire();
 
-        stepDetector = new StepDetector();
-        stepDetector.addStepListener(this);
+        if (stepDetector==null) {
+        	stepDetector = new StepDetector();
+            stepDetector.addStepListener(this);
+        }
 
         sensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
         sensorManager.registerListener( stepDetector, 
                                         sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER), 
                                         SensorManager.SENSOR_DELAY_GAME);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public void onStart(Intent intent, int startId) {        
-        super.onStart(intent, startId);
-        logger.info("onStart");
-        
-        passedIntent = intent;
-        Bundle extras = passedIntent.getExtras();
-        if (extras!=null) {
-            NOTIFY = extras.getInt("int");
-        }
-
-        //Work around a bug where notif number has to be > 0
-        updateNotification((mSteps>0)?mSteps:1);
-        startForegroundCompat(NOTIFY,notification);
-        
         running=true;
     }
 
@@ -102,15 +84,33 @@ public class StepService extends Service implements StepListener {
     public void onDestroy() {        
         super.onDestroy();
         logger.info("onDestroy");
+        running=false;
+        mSteps = 0;
         
         notificatioManager.cancel(NOTIFY);
         if (wakeLock.isHeld()) wakeLock.release();
         sensorManager.unregisterListener(stepDetector);
 
         stopForegroundCompat(NOTIFY);
-        
-        running=false;
-        mSteps = 0;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void onStart(Intent intent, int startId) {        
+        super.onStart(intent, startId);
+        logger.info("onStart");
+
+        passedIntent = intent;
+        Bundle extras = passedIntent.getExtras();
+        if (extras!=null) {
+            NOTIFY = extras.getInt("int");
+        }
+
+        //Work around a bug where notif number has to be > 0
+        updateNotification((mSteps>0)?mSteps:1);
+        startForegroundCompat(NOTIFY,notification);
     }
     
     /**
@@ -193,6 +193,7 @@ public class StepService extends Service implements StepListener {
      */
     @Override
     public void onStep() {
+    	logger.info("onStep()");
         mSteps++;
 
         if (!updating.get()) { 

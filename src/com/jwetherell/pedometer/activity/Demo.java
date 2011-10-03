@@ -297,7 +297,7 @@ public class Demo extends Activity {
         }
     };
 	
-	private IStepServiceCallback.Stub mCallback = new IStepServiceCallback.Stub() {
+	private static final IStepServiceCallback.Stub mCallback = new IStepServiceCallback.Stub() {
 		@Override
 		public IBinder asBinder() {
 			return mCallback;
@@ -312,7 +312,7 @@ public class Demo extends Activity {
 		}
 	};
 
-	private ServiceConnection mConnection = new ServiceConnection() {
+	private static final ServiceConnection mConnection = new ServiceConnection() {
 		/**
 		 * {@inheritDoc}
 		 */

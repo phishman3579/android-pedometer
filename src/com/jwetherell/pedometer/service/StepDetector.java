@@ -1,6 +1,8 @@
 package com.jwetherell.pedometer.service;
 
 import java.util.ArrayList;
+import java.util.List;
+
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
@@ -20,16 +22,17 @@ public class StepDetector implements SensorEventListener {
     
     private static int mLimit = 100;
 
-    private float mLastValues[] = new float[3*2];
-    private float mScale[] = new float[2];
-    private float mYOffset = 0;
+    private static float mLastValues[] = new float[3*2];
+    private static float mScale[] = new float[2];
+    private static float mYOffset = 0;
 
-    private float mLastDirections[] = new float[3*2];
-    private float mLastExtremes[][] = { new float[3*2], new float[3*2] };
-    private float mLastDiff[] = new float[3*2];
-    private int mLastMatch = -1;
+    private static float mLastDirections[] = new float[3*2];
+    private static float mLastExtremes[][] = { new float[3*2], new float[3*2] };
+    private static float mLastDiff[] = new float[3*2];
+    private static int mLastMatch = -1;
     
-    private ArrayList<StepListener> mStepListeners = new ArrayList<StepListener>();
+    private List<StepListener> mStepListeners = new ArrayList<StepListener>();
+
     /**
      * Add a StepListener;
      * @param sl StepListener to add.
