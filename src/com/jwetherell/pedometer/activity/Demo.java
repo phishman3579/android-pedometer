@@ -159,7 +159,7 @@ public class Demo extends Activity {
 			try {
 				if (mService!=null && mService.isRunning()) {
 					MessageUtilities.confirmUser(   Demo.this, 
-							"Exit App and stop pedometer?", 
+							"Exit App without stopping pedometer?", 
 							yesExitClick, 
 							null);
 				} else {
@@ -217,7 +217,7 @@ public class Demo extends Activity {
 		}
 	};    
 
-	private DialogInterface.OnClickListener noStopClick = new DialogInterface.OnClickListener(){
+	private static final DialogInterface.OnClickListener noStopClick = new DialogInterface.OnClickListener(){
 		/**
 		 * {@inheritDoc}
 		 */
@@ -238,7 +238,7 @@ public class Demo extends Activity {
 		 */
 		@Override
 		public void onClick(DialogInterface dialog, int which) {
-			stop();
+			unbindStepService();
 			
 			finish();
 		}

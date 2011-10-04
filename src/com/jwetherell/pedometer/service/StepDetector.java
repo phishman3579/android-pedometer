@@ -34,10 +34,20 @@ public class StepDetector implements SensorEventListener {
     
     private static List<StepListener> mStepListeners = new ArrayList<StepListener>();
 
-    public static final StepDetector getInstance() {
-    	return instance;
+    static {
+        int h = 480;
+        mYOffset = h * 0.5f;
+        mScale = new float[2];
+        mScale[0] = - (h * 0.5f * (1.0f / (SensorManager.STANDARD_GRAVITY * 2)));
+        mScale[1] = - (h * 0.5f * (1.0f / (SensorManager.MAGNETIC_FIELD_EARTH_MAX)));
     }
     
+    private StepDetector() { }
+    
+    public static StepDetector getInstance() {
+    	return instance;
+    }
+
     /**
      * Add a StepListener;
      * @param sl StepListener to add.
@@ -53,13 +63,6 @@ public class StepDetector implements SensorEventListener {
         if (mStepListeners.contains(sl)) mStepListeners.remove(sl);
     }
     
-    private StepDetector() {
-        int h = 480;
-        mYOffset = h * 0.5f;
-        mScale[0] = - (h * 0.5f * (1.0f / (SensorManager.STANDARD_GRAVITY * 2)));
-        mScale[1] = - (h * 0.5f * (1.0f / (SensorManager.MAGNETIC_FIELD_EARTH_MAX)));
-    }
-    
     /**
      * Set sensitivity of the StepDector.
      * @param sensitivity Sensitivity of the StepDector.
@@ -73,13 +76,13 @@ public class StepDetector implements SensorEventListener {
      */
     @Override
     public void onSensorChanged(SensorEvent event) {
-    	if (event==null) return;
+    	if (event==null) throw new NullPointerException();
 
         if (!detecting) detectStep(event);
     }
 
     private void detectStep(SensorEvent event) {
-    	if (event==null) return;
+    	if (event==null) throw new NullPointerException();
 
         detecting=true;
         
@@ -104,7 +107,7 @@ public class StepDetector implements SensorEventListener {
                 boolean isNotContra = (mLastMatch != 1 - extType);
                 
                 if (isAlmostAsLargeAsPrevious && isPreviousLargeEnough && isNotContra) {
-                    for (StepListener stepListener : mStepListeners) {
+                	for (StepListener stepListener : mStepListeners) {
                         stepListener.onStep();
                     }
                     mLastMatch = extType;
