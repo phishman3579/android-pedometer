@@ -18,6 +18,7 @@ import android.hardware.SensorManager;
  * @author Justin Wetherell <phishman3579@gmail.com>
  */
 public class StepDetector implements SensorEventListener {
+	private static final StepDetector instance = new StepDetector(); 
     private static boolean detecting = false;
     
     private static int mLimit = 100;
@@ -31,8 +32,12 @@ public class StepDetector implements SensorEventListener {
     private static float mLastDiff[] = new float[3*2];
     private static int mLastMatch = -1;
     
-    private List<StepListener> mStepListeners = new ArrayList<StepListener>();
+    private static List<StepListener> mStepListeners = new ArrayList<StepListener>();
 
+    public static final StepDetector getInstance() {
+    	return instance;
+    }
+    
     /**
      * Add a StepListener;
      * @param sl StepListener to add.
@@ -48,7 +53,7 @@ public class StepDetector implements SensorEventListener {
         if (mStepListeners.contains(sl)) mStepListeners.remove(sl);
     }
     
-    public StepDetector() {
+    private StepDetector() {
         int h = 480;
         mYOffset = h * 0.5f;
         mScale[0] = - (h * 0.5f * (1.0f / (SensorManager.STANDARD_GRAVITY * 2)));

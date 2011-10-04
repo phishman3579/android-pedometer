@@ -38,14 +38,15 @@ public class StepService extends Service implements StepListener {
     private static AtomicBoolean updating = new AtomicBoolean(false);
     
     private static SensorManager sensorManager = null;
-    private static StepDetector stepDetector = null;
-    
+ 
     private static PowerManager powerManager = null;
     private static WakeLock wakeLock = null;
     private static NotificationManager notificatioManager = null;
     private static Notification notification = null;
     private static Intent passedIntent = null;
     private static List<IStepServiceCallback> mCallbacks = new ArrayList<IStepServiceCallback>();;
+    
+    private static StepDetector stepDetector = StepDetector.getInstance();
     
     private static int mSteps = 0;
     private static boolean running = false;
@@ -64,11 +65,6 @@ public class StepService extends Service implements StepListener {
         powerManager = (PowerManager) getSystemService(Context.POWER_SERVICE);
         wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "StepService");
         if (!wakeLock.isHeld()) wakeLock.acquire();
-
-        if (stepDetector==null) {
-        	stepDetector = new StepDetector();
-            stepDetector.addStepListener(this);
-        }
 
         sensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
         sensorManager.registerListener( stepDetector, 
