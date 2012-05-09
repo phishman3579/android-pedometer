@@ -2,4 +2,9 @@
 <resources>
     <string name="app_name">Pedometer</string>
     <string name="sensitivity">Sensitivity\n(lower = more sensitive)</string>
+    
+    <string name="sensitivity_text">"Sensitivity:"</string>
+    <string name="sensitivity_hint">"Sensitivity"</string>
+    
+    <string name="default_text">"Steps = 0"</string>
 </resources>
