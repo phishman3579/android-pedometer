@@ -1,6 +1,5 @@
 package com.jwetherell.pedometer.service;
 
-
 /**
  * This interface provides a callback mechanism for the StepDetector.
  * 
@@ -10,9 +9,10 @@ package com.jwetherell.pedometer.service;
  * @author Justin Wetherell <phishman3579@gmail.com>
  */
 public interface StepListener {
-	/**
-	 * Called when the StepDetector detects a step. Based on the sensitivity setting.
-	 */
+
+    /**
+     * Called when the StepDetector detects a step. Based on the sensitivity
+     * setting.
+     */
     public void onStep();
 }
-
