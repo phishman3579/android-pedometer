@@ -262,11 +262,11 @@ public class StepService extends Service implements StepListener {
          */
         @Override
         public void registerCallback(IStepServiceCallback cb) throws RemoteException {
+            if (cb == null) return;
+
             logger.info("registerCallback: " + cb.toString());
-            if (cb != null) {
-                cb.stepsChanged(mSteps);
-                if (!mCallbacks.contains(cb)) mCallbacks.add(cb);
-            }
+            cb.stepsChanged(mSteps);
+            if (!mCallbacks.contains(cb)) mCallbacks.add(cb);
         }
 
         /**
@@ -274,8 +274,10 @@ public class StepService extends Service implements StepListener {
          */
         @Override
         public void unregisterCallback(IStepServiceCallback cb) throws RemoteException {
+            if (cb == null) return;
+
             logger.info("unregisterCallback: " + cb.toString());
-            if (cb != null && mCallbacks.contains(cb)) mCallbacks.remove(cb);
+            if (mCallbacks.contains(cb)) mCallbacks.remove(cb);
         }
     };
 
