@@ -12,7 +12,7 @@ A remote service that any App can use to add step counting to their App's functi
 * github: http://github.com/phishman3579/android-pedometer
 * linkedIn: http://www.linkedin.com/in/phishman3579
 * e-mail: phishman3579@gmail.com
-* Twitter: @phishman3579
+* Twitter: http://twitter.com/phishman3579
 
 ## Details
 
