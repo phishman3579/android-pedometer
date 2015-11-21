@@ -8,6 +8,7 @@ A pedometer remote service for Android
 A remote service that any App can use to add step counting to their App's functionalities.
 
 * Created by Justin Wetherell
+* For questions use: http://groups.google.com/forum/#!forum/android-pedometer
 * Google: http://code.google.com/p/android-pedometer
 * Github: http://github.com/phishman3579/android-pedometer
 * LinkedIn: http://www.linkedin.com/in/phishman3579
